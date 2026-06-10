@@ -298,6 +298,98 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
       </div>
 
       {/* =================================================================
+       * SECTION: Riwayat Kejadian Longsor (Historical Events)
+       * Menampilkan statistik kejadian longsor historis per tahun.
+       * ================================================================= */}
+      <div className="glass-card">
+        <div className="divider-label">Riwayat Kejadian Longsor</div>
+        
+        {/* Summary row */}
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+            <span className="stat-value text-base">{stats.totalKejadian || 0}</span>
+            <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Total Kejadian</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+            <span className="stat-value text-base stat-value--danger">{stats.totalKorbanJiwa || 0}</span>
+            <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Korban Jiwa</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+            <span className="stat-value text-base" style={{color: '#f97316'}}>{stats.totalKorbanLuka || 0}</span>
+            <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Korban Luka</p>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+            <span className="stat-value text-base" style={{color: '#06b6d4'}}>{Number(stats.totalPengungsi || 0).toLocaleString('id-ID')}</span>
+            <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Pengungsi</p>
+          </div>
+        </div>
+
+        {/* Per-year breakdown */}
+        {stats.kejadianPerTahun && Object.keys(stats.kejadianPerTahun).length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1">Kejadian Per Tahun</p>
+            {Object.entries(stats.kejadianPerTahun)
+              .sort(([a], [b]) => Number(b) - Number(a))
+              .map(([tahun, data]) => {
+                const maxCount = Math.max(...Object.values(stats.kejadianPerTahun).map(d => d.count));
+                const barWidth = (data.count / maxCount) * 100;
+                return (
+                  <div key={tahun} className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono text-slate-400 w-8 flex-shrink-0">{tahun}</span>
+                    <div className="flex-1 bg-slate-800 rounded-full h-3.5 overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${barWidth}%`,
+                          background: data.korbanJiwa > 0
+                            ? 'linear-gradient(90deg, #dc2626, #ef4444)'
+                            : 'linear-gradient(90deg, #ea580c, #f97316)',
+                        }}
+                      />
+                      <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
+                        {data.count}x
+                      </span>
+                    </div>
+                    {data.korbanJiwa > 0 && (
+                      <span className="text-[9px] text-red-400 font-bold flex-shrink-0 w-6 text-right">
+                        †{data.korbanJiwa}
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        )}
+
+        {/* Recent events list */}
+        {stats.kejadianData && stats.kejadianData.length > 0 && (
+          <div className="mt-3 pt-2 border-t border-slate-700/50">
+            <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">5 Kejadian Terbaru</p>
+            <div className="space-y-1.5">
+              {stats.kejadianData.slice(0, 5).map((kej, idx) => {
+                const tgl = kej.tanggal_kejadian
+                  ? new Date(kej.tanggal_kejadian).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+                  : '-';
+                const sevColor = kej.korban_jiwa > 0 ? 'text-red-400' : kej.korban_luka > 0 ? 'text-orange-400' : 'text-yellow-400';
+                return (
+                  <div key={idx} className="flex items-start gap-2 p-1.5 rounded bg-slate-800/30">
+                    <span className={`text-[10px] font-bold ${sevColor} flex-shrink-0 mt-0.5`}>⚠</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-slate-300 truncate font-medium">{kej.lokasi_nama}</p>
+                      <p className="text-[9px] text-slate-500">{tgl} • {kej.kabupaten} • {kej.tipe_longsor}</p>
+                    </div>
+                    {kej.korban_jiwa > 0 && (
+                      <span className="text-[9px] text-red-400 font-bold flex-shrink-0">†{kej.korban_jiwa}</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* =================================================================
        * SECTION: Ruas Jalan Terdampak
        * Tampilkan hanya saat simulasi aktif — daftar jalan yang terputus.
        * ================================================================= */}
@@ -393,13 +485,13 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
             </p>
           </div>
 
-          {/* Total Ruas Jalan */}
+          {/* Total Kejadian Historis */}
           <div className="text-center p-3 rounded-lg bg-slate-800/50">
-            <span className={`stat-value text-lg ${isSimulating ? 'stat-value--danger' : ''}`}>
-              {stats.totalJalan}
+            <span className="stat-value text-lg" style={{color: '#f97316'}}>
+              {stats.totalKejadian || 0}
             </span>
             <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">
-              {isSimulating ? 'Jalan Putus' : 'Ruas Jalan'}
+              Kejadian Tercatat
             </p>
           </div>
         </div>

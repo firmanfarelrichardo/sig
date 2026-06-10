@@ -24,7 +24,7 @@ services:
       POSTGRES_USER: polaris_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-polaris_secure_2024}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       # Mount init.sql ke entrypoint agar dieksekusi saat container pertama
       # kali dijalankan. PostgreSQL otomatis menjalankan .sql di folder ini.
@@ -53,14 +53,14 @@ services:
     container_name: polaris-api
     restart: unless-stopped
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DB_HOST: postgis-db
       DB_PORT: 5432
       DB_NAME: polaris_db
       DB_USER: polaris_user
       DB_PASSWORD: ${POSTGRES_PASSWORD:-polaris_secure_2024}
-      # CORS origin — harus sesuai dengan URL frontend
-      CORS_ORIGIN: http://localhost:3000
+      # CORS origin — harus sesuai dengan URL frontend (allow multiple origins)
+      CORS_ORIGIN: "http://localhost:3000,http://0.0.0.0:3000,http://127.0.0.1:3000,http://react-frontend:3000"
       API_PORT: 5000
     ports:
       - "5000:5000"

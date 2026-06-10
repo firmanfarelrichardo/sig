@@ -18,8 +18,9 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import SidebarControl from './components/SidebarControl';
-import MapCanvas from './components/MapCanvas';
+import MapCanvasEnhanced from './components/MapCanvasEnhanced';
 import StatsPanel from './components/StatsPanel';
+import LandingPage from './components/LandingPage';
 
 /**
  * URL API Backend — diinjeksi saat Docker build via REACT_APP_API_URL.
@@ -63,6 +64,11 @@ function App() {
    * error: Pesan error jika fetching gagal
    */
   const [error, setError] = useState(null);
+
+  /**
+   * currentPage: State untuk routing sederhana antara 'landing' dan 'map'
+   */
+  const [currentPage, setCurrentPage] = useState('landing');
 
   // =======================================================================
   // DATA FETCHING
@@ -188,11 +194,29 @@ function App() {
     const faskesFeatures = geodata.features.filter(
       (f) => f.properties.layerType === 'faskes'
     );
+    const kejadianFeatures = geodata.features.filter(
+      (f) => f.properties.layerType === 'kejadian'
+    );
+
+    // Hitung statistik per tahun untuk kejadian longsor
+    const kejadianPerTahun = {};
+    kejadianFeatures.forEach((f) => {
+      const tahun = f.properties.tanggal_kejadian
+        ? new Date(f.properties.tanggal_kejadian).getFullYear()
+        : 'Unknown';
+      if (!kejadianPerTahun[tahun]) {
+        kejadianPerTahun[tahun] = { count: 0, korbanJiwa: 0, korbanLuka: 0 };
+      }
+      kejadianPerTahun[tahun].count++;
+      kejadianPerTahun[tahun].korbanJiwa += f.properties.korban_jiwa || 0;
+      kejadianPerTahun[tahun].korbanLuka += f.properties.korban_luka || 0;
+    });
 
     return {
       totalJalan: jalanFeatures.length,
       totalZonaLongsor: longsorFeatures.length,
       totalFaskes: faskesFeatures.length,
+      totalKejadian: kejadianFeatures.length,
       totalPopulasiTerdampak: longsorFeatures.reduce(
         (sum, f) => sum + (f.properties.estimasi_populasi || 0), 0
       ),
@@ -203,9 +227,20 @@ function App() {
         (f) => f.properties.tingkat_bahaya === 'Kritis' || 
                f.properties.tingkat_bahaya === 'Tinggi'
       ).length,
+      totalKorbanJiwa: kejadianFeatures.reduce(
+        (sum, f) => sum + (f.properties.korban_jiwa || 0), 0
+      ),
+      totalKorbanLuka: kejadianFeatures.reduce(
+        (sum, f) => sum + (f.properties.korban_luka || 0), 0
+      ),
+      totalPengungsi: kejadianFeatures.reduce(
+        (sum, f) => sum + (f.properties.pengungsi || 0), 0
+      ),
+      kejadianPerTahun,
       jalanData: jalanFeatures.map((f) => f.properties),
       longsorData: longsorFeatures.map((f) => f.properties),
       faskesData: faskesFeatures.map((f) => f.properties),
+      kejadianData: kejadianFeatures.map((f) => f.properties),
     };
   }, [geodata]);
 
@@ -225,6 +260,15 @@ function App() {
     hour: '2-digit',
     minute: '2-digit',
   });
+
+  if (currentPage === 'landing') {
+    return (
+      <LandingPage 
+        onExplore={() => setCurrentPage('map')} 
+        stats={stats}
+      />
+    );
+  }
 
   return (
     <div className="polaris-layout">
@@ -290,6 +334,7 @@ function App() {
           onRegionChange={handleRegionChange}
           stats={stats}
           isLoading={isLoading}
+          onBackToLanding={() => setCurrentPage('landing')}
         />
       </aside>
 
@@ -316,7 +361,7 @@ function App() {
             </button>
           </div>
         ) : (
-          <MapCanvas
+          <MapCanvasEnhanced
             geodata={filteredGeodata}
             isSimulating={isSimulating}
             isLoading={isLoading}

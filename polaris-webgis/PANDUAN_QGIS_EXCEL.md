@@ -39,7 +39,7 @@ Karena Docker Compose POLARIS memetakan port internal `5432` ke port `5432` pada
      * **Name**: `POLARIS PostGIS` (atau nama bebas yang Anda inginkan)
      * **Service**: *Kosongkan*
      * **Host**: `localhost` (Jika Anda menggunakan Windows + Docker Desktop WSL2 dan QGIS berjalan di Windows Host, gunakan `localhost` atau `127.0.0.1`. Jika Docker berjalan di server remote, masukkan IP server tersebut).
-     * **Port**: `5432`
+     * **Port**: `5433` ⚠️ **PERHATIAN: Port 5433, BUKAN 5432** (port 5432 digunakan oleh PostgreSQL lokal Laragon). Jika sebelumnya menggunakan 5432, silakan hapus koneksi lama dan buat baru dengan port 5433.
      * **Database**: `polaris_db`
      * **SSL Mode**: `disable` (untuk lingkungan lokal)
    * **Authentication**:

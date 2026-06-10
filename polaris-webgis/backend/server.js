@@ -72,25 +72,38 @@ app.use(helmet({
  * potensi CSRF dan data exfiltration. Whitelist memastikan hanya 
  * frontend POLARIS yang bisa mengakses endpoint ini.
  */
-const allowedOrigins = [
-  process.env.CORS_ORIGIN || 'http://localhost:3000',
-];
+const corsOriginStr = process.env.CORS_ORIGIN || 'http://localhost:3000';
+const allowedOrigins = corsOriginStr.split(',').map(o => o.trim());
 
 app.use(cors({
   origin: function (origin, callback) {
     // Izinkan request tanpa origin (e.g., curl, server-to-server)
-    // hanya di development
+    // dalam development mode
     if (!origin && process.env.NODE_ENV !== 'production') {
       return callback(null, true);
     }
-    if (allowedOrigins.includes(origin)) {
+    
+    // Jika production, require origin
+    if (!origin && process.env.NODE_ENV === 'production') {
+      return callback(new Error('Origin required in production'));
+    }
+    
+    // Check apakah origin ada di whitelist
+    if (allowedOrigins.some(allowed => {
+      if (allowed === '*') return true;
+      if (allowed === origin) return true;
+      // Support wildcard pattern (e.g., http://*.localhost:3000)
+      const pattern = allowed.replace(/\*/g, '.*');
+      return new RegExp(`^${pattern}$`).test(origin);
+    })) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error(`Not allowed by CORS: ${origin}`));
     }
   },
   methods: ['GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept'],
+  credentials: true,
   maxAge: 86400, // Preflight cache 24 jam
 }));
 
@@ -197,7 +210,7 @@ app.get('/api/geodata', async (req, res) => {
     });
 
     // ====================================================================
-    // Query 3: Fasilitas Kesehatan (Point)
+    // Query 3: Fasilitas Kesehatan (Point) — Layer 4 (Akses)
     // ====================================================================
     const faskesQuery = await client.query({
       text: `SELECT 
@@ -213,14 +226,96 @@ app.get('/api/geodata', async (req, res) => {
     });
 
     // ====================================================================
+    // Query 4: Zona Terisolasi (Polygon) — Layer 2 (Dampak/Impact)
+    // Blank Spots yang menunjukkan area keterisolasian pasca-bencana.
+    // ====================================================================
+    const terisolasiQuery = await client.query({
+      text: `SELECT 
+               id, 
+               nama_zona, 
+               estimasi_populasi, 
+               durasi_isolasi_hari, 
+               ruas_jalan_terputus, 
+               fasilitas_kesehatan_terdekat,
+               jarak_ke_faskes_km,
+               tipe_dampak,
+               deskripsi,
+               ST_AsGeoJSON(geom) as geojson
+             FROM zona_terisolasi 
+             ORDER BY estimasi_populasi DESC`,
+    });
+
+    // ====================================================================
+    // Query 5: Zona Kerawanan Longsor (Polygon) — Layer 1 (Bencana/Hazard)
+    // Indeks kerawanan numerik 0-100 untuk choropleth visualization.
+    // ====================================================================
+    const kerawananQuery = await client.query({
+      text: `SELECT 
+               id, 
+               nama_zona, 
+               indeks_kerawanan, 
+               faktor_curah_hujan, 
+               faktor_kemiringan, 
+               faktor_tanah_labil, 
+               faktor_deforestasi,
+               validasi_data,
+               tahun_kalibrasi,
+               deskripsi,
+               ST_AsGeoJSON(geom) as geojson
+             FROM zona_kerawanan_longsor 
+             ORDER BY indeks_kerawanan DESC`,
+    });
+
+    // ====================================================================
+    // Query 6: Kejadian Longsor Historis (Point) — Layer 5 (Events)
+    // Data kasus/insiden longsor nyata yang tercatat per tanggal.
+    // MENGAPA query terpisah? Memungkinkan analisis temporal (tren per
+    // tahun/bulan) dan visualisasi titik kejadian aktual vs zona rawan.
+    // ====================================================================
+    const kejadianQuery = await client.query({
+      text: `SELECT 
+               id, 
+               tanggal_kejadian,
+               waktu_kejadian,
+               lokasi_nama, 
+               kecamatan,
+               kabupaten,
+               tipe_longsor,
+               volume_material_m3,
+               korban_jiwa, 
+               korban_luka,
+               pengungsi,
+               rumah_rusak_berat,
+               rumah_rusak_ringan,
+               ruas_jalan_terdampak,
+               panjang_jalan_putus_m,
+               faktor_pemicu,
+               curah_hujan_mm,
+               durasi_hujan_jam,
+               status_penanganan,
+               sumber_data,
+               deskripsi,
+               ST_AsGeoJSON(geom) as geojson
+             FROM kejadian_longsor 
+             ORDER BY tanggal_kejadian DESC`,
+    });
+
+    // ====================================================================
     // Gabungkan semua features menjadi satu FeatureCollection
-    // Setiap feature diberi property 'layerType' untuk identifikasi 
-    // di frontend saat rendering dengan warna dan style berbeda.
+    // Urutan layers mengikuti spesifikasi stack:
+    // Layer 0: Base (CartoDB Dark Matter — handled di frontend)
+    // Layer 1: Bencana (zona_kerawanan — Polygon 45% opacity)
+    // Layer 2: Dampak (zona_terisolasi — Polygon 60% opacity)
+    // Layer 3: Akses (ruas_jalan — LineString 100% opacity)
+    // Layer 4: Faskes (fasilitas_kesehatan — Point 100% opacity)
     // ====================================================================
     const features = [
+      ...kerawananQuery.rows.map((row) => rowToGeoJSONFeature(row, 'kerawanan')),
+      ...terisolasiQuery.rows.map((row) => rowToGeoJSONFeature(row, 'terisolasi')),
       ...jalanQuery.rows.map((row) => rowToGeoJSONFeature(row, 'jalan')),
       ...longsorQuery.rows.map((row) => rowToGeoJSONFeature(row, 'longsor')),
       ...faskesQuery.rows.map((row) => rowToGeoJSONFeature(row, 'faskes')),
+      ...kejadianQuery.rows.map((row) => rowToGeoJSONFeature(row, 'kejadian')),
     ];
 
     const geojsonResponse = {
@@ -229,11 +324,15 @@ app.get('/api/geodata', async (req, res) => {
       metadata: {
         totalFeatures: features.length,
         layers: {
+          kerawanan: kerawananQuery.rows.length,
+          terisolasi: terisolasiQuery.rows.length,
           jalan: jalanQuery.rows.length,
           longsor: longsorQuery.rows.length,
           faskes: faskesQuery.rows.length,
+          kejadian: kejadianQuery.rows.length,
         },
         generatedAt: new Date().toISOString(),
+        crs: 'EPSG:4326',
       },
     };
 
@@ -336,7 +435,7 @@ async function startServer() {
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`[Server] API running on http://0.0.0.0:${PORT}`);
     console.log(`[Server] Endpoints available:`);
-    console.log(`  GET /api/geodata  — GeoJSON FeatureCollection`);
+    console.log(`  GET /api/geodata  — GeoJSON FeatureCollection (6 layers)`);
     console.log(`  GET /api/health   — Health check`);
   });
 }

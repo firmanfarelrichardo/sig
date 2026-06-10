@@ -29,6 +29,7 @@ function SidebarControl({
   onRegionChange,
   stats,
   isLoading,
+  onBackToLanding,
 }) {
   /**
    * Daftar wilayah untuk dropdown filter.
@@ -48,9 +49,18 @@ function SidebarControl({
   return (
     <div className="flex flex-col gap-4 h-full">
       {/* =================================================================
-       * SECTION: Panel Title
+       * SECTION: Back Button & Panel Title
        * ================================================================= */}
       <div className="pb-3 border-b border-slate-700">
+        <button 
+          onClick={onBackToLanding}
+          className="mb-4 flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-cyan-400 uppercase tracking-wider transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+          </svg>
+          Kembali ke Beranda
+        </button>
         <h2 className="text-sm font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2">
           <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -186,6 +196,17 @@ function SidebarControl({
                 {stats.totalFaskes}
               </span>
             </div>
+
+            {/* Kejadian Longsor */}
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 flex items-center justify-center text-[8px]">⚠️</div>
+                <span className="text-xs text-slate-300">Kejadian Longsor</span>
+              </div>
+              <span className="text-xs font-mono font-bold text-orange-400">
+                {stats.totalKejadian || 0}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -214,6 +235,12 @@ function SidebarControl({
           <div className="flex items-center gap-2.5">
             <span className="text-sm leading-none">🏥</span>
             <span className="text-[11px] text-slate-400">Fasilitas Kesehatan</span>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <div className="w-3.5 h-3.5 bg-orange-500 rounded transform rotate-45 flex items-center justify-center" style={{fontSize: '8px'}}>
+              <span style={{transform: 'rotate(-45deg)'}}>⚠</span>
+            </div>
+            <span className="text-[11px] text-slate-400">Kejadian Longsor Historis</span>
           </div>
         </div>
       </div>
