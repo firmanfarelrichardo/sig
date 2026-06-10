@@ -111,7 +111,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 h-full">
-        <div className="pb-3 border-b border-slate-700">
+        <div className="pb-3 border-b border-slate-200">
           <div className="skeleton h-5 w-40 mb-2"></div>
           <div className="skeleton h-3 w-56"></div>
         </div>
@@ -135,9 +135,9 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
       {/* =================================================================
        * SECTION: Panel Title
        * ================================================================= */}
-      <div className="pb-3 border-b border-slate-700">
+      <div className="pb-3 border-b border-slate-200">
         <h2 className="text-sm font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2">
-          <svg className="w-4 h-4 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-4 h-4 text-orange-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
           Panel Statistik
@@ -187,13 +187,13 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                 {faskesIsolated} Terisolasi
               </span>
               <span className="status-badge status-badge--success">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                 {faskesSafe} Aman
               </span>
             </>
           ) : (
             <span className="status-badge status-badge--success">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
               {simulationStats.faskesDetail.length} Operasional
             </span>
           )}
@@ -209,12 +209,12 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                 className={`flex items-center justify-between p-2.5 rounded-lg transition-all duration-300 ${
                   isIsolated
                     ? 'bg-red-500/10 border border-red-500/30'
-                    : 'bg-slate-800/50 hover:bg-slate-800'
+                    : 'bg-slate-50/50 hover:bg-slate-50'
                 }`}
               >
                 <div className="flex-1 min-w-0">
                   <p className={`text-xs font-semibold truncate ${
-                    isIsolated ? 'text-red-300' : 'text-slate-300'
+                    isIsolated ? 'text-red-300' : 'text-slate-600'
                   }`}>
                     {faskes.nama}
                   </p>
@@ -229,8 +229,8 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                       Isolasi
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/20 text-[10px] font-bold text-amber-500 uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                       Aman
                     </span>
                   )}
@@ -272,11 +272,11 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
               <div
                 key={idx}
                 className={`p-2.5 rounded-lg transition-all duration-300 ${
-                  isSimulating ? `${config.bg} border ${config.border}` : 'bg-slate-800/50 hover:bg-slate-800'
+                  isSimulating ? `${config.bg} border ${config.border}` : 'bg-slate-50/50 hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <p className={`text-xs font-semibold ${isSimulating ? config.text : 'text-slate-300'}`}>
+                  <p className={`text-xs font-semibold ${isSimulating ? config.text : 'text-slate-600'}`}>
                     {zona.nama}
                   </p>
                   <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider border ${config.badge}`}>
@@ -306,19 +306,19 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
         
         {/* Summary row */}
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+          <div className="text-center p-2 rounded-lg bg-slate-50/50">
             <span className="stat-value text-base">{stats.totalKejadian || 0}</span>
             <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Total Kejadian</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+          <div className="text-center p-2 rounded-lg bg-slate-50/50">
             <span className="stat-value text-base stat-value--danger">{stats.totalKorbanJiwa || 0}</span>
             <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Korban Jiwa</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+          <div className="text-center p-2 rounded-lg bg-slate-50/50">
             <span className="stat-value text-base" style={{color: '#f97316'}}>{stats.totalKorbanLuka || 0}</span>
             <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Korban Luka</p>
           </div>
-          <div className="text-center p-2 rounded-lg bg-slate-800/50">
+          <div className="text-center p-2 rounded-lg bg-slate-50/50">
             <span className="stat-value text-base" style={{color: '#06b6d4'}}>{Number(stats.totalPengungsi || 0).toLocaleString('id-ID')}</span>
             <p className="text-[9px] text-slate-500 mt-0.5 uppercase tracking-wider">Pengungsi</p>
           </div>
@@ -335,8 +335,8 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                 const barWidth = (data.count / maxCount) * 100;
                 return (
                   <div key={tahun} className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono text-slate-400 w-8 flex-shrink-0">{tahun}</span>
-                    <div className="flex-1 bg-slate-800 rounded-full h-3.5 overflow-hidden relative">
+                    <span className="text-[10px] font-mono text-slate-500 w-8 flex-shrink-0">{tahun}</span>
+                    <div className="flex-1 bg-slate-50 rounded-full h-3.5 overflow-hidden relative">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -346,7 +346,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                             : 'linear-gradient(90deg, #ea580c, #f97316)',
                         }}
                       />
-                      <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
+                      <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-slate-800">
                         {data.count}x
                       </span>
                     </div>
@@ -363,7 +363,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
 
         {/* Recent events list */}
         {stats.kejadianData && stats.kejadianData.length > 0 && (
-          <div className="mt-3 pt-2 border-t border-slate-700/50">
+          <div className="mt-3 pt-2 border-t border-slate-200/50">
             <p className="text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">5 Kejadian Terbaru</p>
             <div className="space-y-1.5">
               {stats.kejadianData.slice(0, 5).map((kej, idx) => {
@@ -372,10 +372,10 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
                   : '-';
                 const sevColor = kej.korban_jiwa > 0 ? 'text-red-400' : kej.korban_luka > 0 ? 'text-orange-400' : 'text-yellow-400';
                 return (
-                  <div key={idx} className="flex items-start gap-2 p-1.5 rounded bg-slate-800/30">
+                  <div key={idx} className="flex items-start gap-2 p-1.5 rounded bg-slate-50/30">
                     <span className={`text-[10px] font-bold ${sevColor} flex-shrink-0 mt-0.5`}>⚠</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] text-slate-300 truncate font-medium">{kej.lokasi_nama}</p>
+                      <p className="text-[10px] text-slate-600 truncate font-medium">{kej.lokasi_nama}</p>
                       <p className="text-[9px] text-slate-500">{tgl} • {kej.kabupaten} • {kej.tipe_longsor}</p>
                     </div>
                     {kej.korban_jiwa > 0 && (
@@ -454,7 +454,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
         <div className="divider-label">Kapasitas Sistem</div>
         <div className="grid grid-cols-2 gap-3">
           {/* Total Bed */}
-          <div className="text-center p-3 rounded-lg bg-slate-800/50">
+          <div className="text-center p-3 rounded-lg bg-slate-50/50">
             <span className={`stat-value text-lg ${isSimulating ? 'stat-value--danger' : 'stat-value--success'}`}>
               {isSimulating
                 ? (stats.totalKapasitasBed - bedCapacityLost)
@@ -466,7 +466,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
           </div>
 
           {/* Total Faskes */}
-          <div className="text-center p-3 rounded-lg bg-slate-800/50">
+          <div className="text-center p-3 rounded-lg bg-slate-50/50">
             <span className={`stat-value text-lg ${isSimulating && faskesIsolated > 0 ? 'stat-value--danger' : 'stat-value--success'}`}>
               {isSimulating ? faskesSafe : stats.totalFaskes}
             </span>
@@ -476,7 +476,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
           </div>
 
           {/* Zona Kritis */}
-          <div className="text-center p-3 rounded-lg bg-slate-800/50">
+          <div className="text-center p-3 rounded-lg bg-slate-50/50">
             <span className={`stat-value text-lg ${stats.zonaKritis > 0 ? 'stat-value--danger' : ''}`}>
               {stats.zonaKritis}
             </span>
@@ -486,7 +486,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
           </div>
 
           {/* Total Kejadian Historis */}
-          <div className="text-center p-3 rounded-lg bg-slate-800/50">
+          <div className="text-center p-3 rounded-lg bg-slate-50/50">
             <span className="stat-value text-lg" style={{color: '#f97316'}}>
               {stats.totalKejadian || 0}
             </span>

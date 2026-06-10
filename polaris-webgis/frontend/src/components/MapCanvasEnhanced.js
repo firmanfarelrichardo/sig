@@ -149,7 +149,7 @@ function getHazardColor(index) {
 /**
  * Main MapCanvas Component
  */
-function MapCanvasEnhanced({ geodata, isSimulating, isLoading }) {
+function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, selectedYear }) {
   // =====================================================================
   // STYLE FUNCTIONS untuk 5 LAYERS
   // =====================================================================
@@ -266,12 +266,27 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading }) {
       };
     }
 
-    const kerawanan = geodata.features.filter((f) => f.properties.layerType === 'kerawanan');
-    const terisolasi = geodata.features.filter((f) => f.properties.layerType === 'terisolasi');
+    const matchesRegion = (f) => {
+      if (!selectedRegion || selectedRegion === 'all') return true;
+      const props = f.properties;
+      const regionStr = (props.kabupaten || props.nama_zona || props.nama_ruas || '').toLowerCase();
+      return regionStr.includes(selectedRegion.toLowerCase());
+    };
+
+    const kerawanan = geodata.features.filter((f) => f.properties.layerType === 'kerawanan' && matchesRegion(f));
+    const terisolasi = geodata.features.filter((f) => f.properties.layerType === 'terisolasi' && matchesRegion(f));
     const jalan = geodata.features.filter((f) => f.properties.layerType === 'jalan');
-    const longsor = geodata.features.filter((f) => f.properties.layerType === 'longsor');
+    const longsor = geodata.features.filter((f) => f.properties.layerType === 'longsor' && matchesRegion(f));
     const faskes = geodata.features.filter((f) => f.properties.layerType === 'faskes');
-    const kejadian = geodata.features.filter((f) => f.properties.layerType === 'kejadian');
+    
+    let kejadian = geodata.features.filter((f) => f.properties.layerType === 'kejadian');
+    if (selectedYear && selectedYear !== 'all') {
+      kejadian = kejadian.filter((f) => {
+        const tgl = f.properties.tanggal_kejadian;
+        if (!tgl) return false;
+        return tgl.substring(0, 4) === selectedYear;
+      });
+    }
 
     return {
       kerawananData: kerawanan.length > 0 ? { type: 'FeatureCollection', features: kerawanan } : null,
@@ -281,7 +296,7 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading }) {
       faskesFeatures: faskes,
       kejadianFeatures: kejadian,
     };
-  }, [geodata]);
+  }, [geodata, selectedRegion, selectedYear]);
 
   // =====================================================================
   // POPUP GENERATORS
@@ -461,8 +476,16 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading }) {
         maxZoom={19}
       />
 
-      {/* Auto-fit bounds */}
-      {geodata && <FitBounds geodata={geodata} />}
+      {/* Auto-fit bounds based on filtered features */}
+      <FitBounds geodata={{
+        type: 'FeatureCollection',
+        features: [
+          ...(kerawananData ? kerawananData.features : []),
+          ...(terisolasiData ? terisolasiData.features : []),
+          ...(longsorData ? longsorData.features : []),
+          ...(kejadianFeatures || [])
+        ]
+      }} />
 
       {/* Layer 1: Kerawanan Longsor (Hazard) — Choropleth */}
       {kerawananData && (
