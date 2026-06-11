@@ -21,7 +21,7 @@
 
 import React, { useMemo } from 'react';
 
-function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
+function StatsPanel({ stats, isSimulating, isLoading, geodata, selectedRegion }) {
   // =====================================================================
   // COMPUTED STATISTICS
   // Menghitung statistik tambahan yang berubah berdasarkan simulasi.
@@ -42,14 +42,21 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
       };
     }
 
+    const matchesRegion = (f) => {
+      if (!selectedRegion || selectedRegion === 'all') return true;
+      const props = f.properties || {};
+      const regionStr = (props.kabupaten || props.nama_zona || props.nama_ruas || '').toLowerCase();
+      return regionStr.includes(selectedRegion.toLowerCase());
+    };
+
     const faskesFeatures = geodata.features.filter(
-      (f) => f.properties.layerType === 'faskes'
+      (f) => f.properties.layerType === 'faskes' && matchesRegion(f)
     );
     const longsorFeatures = geodata.features.filter(
-      (f) => f.properties.layerType === 'longsor'
+      (f) => f.properties.layerType === 'longsor' && matchesRegion(f)
     );
     const jalanFeatures = geodata.features.filter(
-      (f) => f.properties.layerType === 'jalan'
+      (f) => f.properties.layerType === 'jalan' && matchesRegion(f)
     );
 
     // Total populasi dari zona longsor
@@ -89,7 +96,7 @@ function StatsPanel({ stats, isSimulating, isLoading, geodata }) {
       jalanTerdampak,
       zonaBahayaDetail,
     };
-  }, [geodata]);
+  }, [geodata, selectedRegion]);
 
   /**
    * Menghitung jumlah faskes terisolasi dan aman.

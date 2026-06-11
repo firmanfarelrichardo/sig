@@ -67,6 +67,13 @@ function App() {
   const calculateStats = useCallback(() => {
     if (!geodata) return { totalFaskes: 0, totalJalan: 0, totalKejadian: 0, zonaKritis: 0 };
 
+    const matchesRegion = (f) => {
+      if (!selectedRegion || selectedRegion === 'all') return true;
+      const props = f.properties || {};
+      const regionStr = (props.kabupaten || props.nama_zona || props.nama_ruas || '').toLowerCase();
+      return regionStr.includes(selectedRegion.toLowerCase());
+    };
+
     const stats = {
       totalFaskes: 0,
       totalJalan: 0,
@@ -75,6 +82,8 @@ function App() {
     };
 
     geodata.features.forEach(feature => {
+      if (!matchesRegion(feature)) return;
+
       const { type } = feature.geometry;
       const props = feature.properties;
 
@@ -89,7 +98,7 @@ function App() {
     });
 
     return stats;
-  }, [geodata]);
+  }, [geodata, selectedRegion]);
 
   const stats = calculateStats();
 

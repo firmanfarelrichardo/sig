@@ -52,7 +52,7 @@ const MapDashboard = ({
   }
 
   return (
-    <div className="flex w-full h-full pt-20 pb-4 px-4 gap-4 bg-[#faf8f5]">
+    <div className="flex w-full h-full pt-28 pb-4 px-4 gap-4 bg-[#faf8f5]">
       {/* Kolom Kiri: Sidebar Control */}
       <div className="w-[300px] bg-white rounded-3xl shadow-[0_8px_30px_rgba(0,0,0,0.04)] border border-[#8b5a2b]/10 overflow-y-auto flex flex-col p-5">
         <SidebarControl 
@@ -128,6 +128,7 @@ const MapDashboard = ({
           isSimulating={isSimulating}
           isLoading={isLoading}
           geodata={geodata}
+          selectedRegion={selectedRegion}
         />
       </div>
     </div>

@@ -4,6 +4,7 @@
   "description": "POLARIS WebGIS — Frontend React Dashboard dengan Peta Interaktif",
   "private": true,
   "dependencies": {
+    "@turf/turf": "^7.3.5",
     "leaflet": "^1.9.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

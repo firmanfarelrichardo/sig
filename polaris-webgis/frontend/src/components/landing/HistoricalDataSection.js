@@ -24,6 +24,46 @@ const HistoricalDataSection = ({ stats, geodata }) => {
     });
   }, [events, filterRegion, filterYear]);
 
+  const handleDownloadCSV = () => {
+    if (!filteredEvents || filteredEvents.length === 0) return;
+
+    const headers = [
+      'Tanggal Kejadian', 'Waktu', 'Lokasi', 'Kecamatan', 'Kabupaten', 
+      'Tipe Longsor', 'Faktor Pemicu', 'Korban Jiwa', 'Korban Luka', 
+      'Pengungsi', 'Rumah Rusak Berat', 'Rumah Rusak Ringan', 
+      'Fasilitas Terdampak', 'Volume Material (m3)', 'Status Penanganan'
+    ];
+    
+    const rows = filteredEvents.map(evt => {
+      return [
+        `"${evt.tanggal_kejadian || ''}"`,
+        `"${evt.waktu_kejadian || ''}"`,
+        `"${evt.lokasi_nama || ''}"`,
+        `"${evt.kecamatan || ''}"`,
+        `"${evt.kabupaten || ''}"`,
+        `"${evt.tipe_longsor || ''}"`,
+        `"${evt.faktor_pemicu || ''}"`,
+        evt.korban_jiwa || 0,
+        evt.korban_luka || 0,
+        evt.pengungsi || 0,
+        evt.rumah_rusak_berat || 0,
+        evt.rumah_rusak_ringan || 0,
+        `"${evt.fasilitas_terdampak || ''}"`,
+        evt.volume_material_m3 || 0,
+        `"${evt.status_penanganan || ''}"`
+      ].join(',');
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(',') + '\n' + rows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Data_Longsor_Polaris_${filterYear}_${filterRegion}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Kalkulasi statistik berdasarkan data tersaring
   const totalKorbanJiwa = filteredEvents.reduce((sum, evt) => sum + (evt.korban_jiwa || 0), 0);
   const totalInfrastrukturRusak = filteredEvents.reduce((sum, evt) => sum + (evt.rumah_rusak_berat || 0) + (evt.rumah_rusak_ringan || 0), 0);
@@ -71,10 +111,17 @@ const HistoricalDataSection = ({ stats, geodata }) => {
             </div>
           </div>
         </div>
+        
+        {/* Abstract Divider 1 */}
+        <div className="w-full flex justify-center py-6 -mb-16 relative z-10 opacity-50">
+          <svg width="120" height="20" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <line x1="10" y1="10" x2="45" y2="10" stroke="#8b5a2b" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
+            <rect x="50" y="2" width="16" height="16" transform="rotate(45 58 10)" fill="#8b5a2b" fillOpacity="0.2" stroke="#8b5a2b" strokeWidth="2" />
+            <line x1="75" y1="10" x2="110" y2="10" stroke="#8b5a2b" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 4" />
+          </svg>
+        </div>
       </section>
-
-      {/* SECTION 2: TREN VISUALISASI */}
-      <section className="py-16 bg-white border-y border-slate-100">
+      <section className="py-16 bg-white border-y border-slate-100 relative">
         <div className="max-w-[1200px] mx-auto px-6 lg:px-12">
           <div className="flex flex-col md:flex-row items-center justify-between mb-8">
             <div>
@@ -103,6 +150,13 @@ const HistoricalDataSection = ({ stats, geodata }) => {
               })
             )}
           </div>
+        </div>
+        
+        {/* Graphic Separator 2 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10" style={{ transform: 'rotate(180deg)' }}>
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[30px] md:h-[50px] block" style={{ fill: '#fdfbf7' }}>
+            <path d="M1200,0H0V120H281.94C572.9,116.24,602.45,3.86,902.61,3.86,1053.86,3.86,1162.77,65,1200,81.16Z"></path>
+          </svg>
         </div>
       </section>
 
@@ -148,7 +202,10 @@ const HistoricalDataSection = ({ stats, geodata }) => {
                   <option value="2018">2018</option>
                 </select>
 
-                <button className="px-4 py-2 bg-[#8b5a2b] text-white rounded-lg text-sm font-bold hover:bg-[#6e4620] transition-colors shadow-md">
+                <button 
+                  onClick={handleDownloadCSV}
+                  className="px-4 py-2 bg-[#8b5a2b] text-white rounded-lg text-sm font-bold hover:bg-[#6e4620] transition-colors shadow-md"
+                >
                   Unduh CSV
                 </button>
               </div>

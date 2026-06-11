@@ -21,6 +21,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { MapContainer, TileLayer, GeoJSON, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import * as turf from '@turf/turf';
 
 const MAP_CENTER = [-5.3637, 105.2429];
 const MAP_ZOOM = 9;
@@ -197,8 +198,12 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
    * Layer 3: Ruas Jalan (Access) — Kritis untuk evakuasi
    */
   const getJalanStyle = useCallback((feature) => {
-    if (isSimulating) {
-      // Saat simulasi: merah putus-putus (terputus)
+    const props = feature.properties || {};
+    const regionStr = (props.kabupaten || props.nama_zona || props.nama_ruas || '').toLowerCase();
+    const isTargetRegion = !selectedRegion || selectedRegion === 'all' || regionStr.includes(selectedRegion.toLowerCase());
+
+    if (isSimulating && isTargetRegion) {
+      // Saat simulasi: merah putus-putus (terputus) untuk wilayah terpilih
       return {
         color: '#ef4444',
         weight: 4,
@@ -209,7 +214,7 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
         lineJoin: 'round',
       };
     }
-    // Normal: hijau solid (operasional)
+    // Normal atau di luar wilayah simulasi: hijau solid (operasional)
     return {
       color: '#22c55e',
       weight: 3,
@@ -217,7 +222,7 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
       lineCap: 'round',
       lineJoin: 'round',
     };
-  }, [isSimulating]);
+  }, [isSimulating, selectedRegion]);
 
   /**
    * Layer 4: Zona Longsor historis (masih untuk referensi)
@@ -275,11 +280,26 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
 
     const kerawanan = geodata.features.filter((f) => f.properties.layerType === 'kerawanan' && matchesRegion(f));
     const terisolasi = geodata.features.filter((f) => f.properties.layerType === 'terisolasi' && matchesRegion(f));
-    const jalan = geodata.features.filter((f) => f.properties.layerType === 'jalan');
+    
+    // Smooth jalan features using bezierSpline
+    const jalan = geodata.features.filter((f) => f.properties.layerType === 'jalan').map(f => {
+      if (f.geometry && f.geometry.type === 'LineString') {
+        try {
+          return turf.bezierSpline(f, { resolution: 20000, sharpness: 0.5 });
+        } catch(e) {
+          return f;
+        }
+      }
+      return f;
+    });
+
     const longsor = geodata.features.filter((f) => f.properties.layerType === 'longsor' && matchesRegion(f));
-    const faskes = geodata.features.filter((f) => f.properties.layerType === 'faskes');
+    const faskes = geodata.features.filter((f) => f.properties.layerType === 'faskes' && matchesRegion(f));
     
     let kejadian = geodata.features.filter((f) => f.properties.layerType === 'kejadian');
+    if (selectedRegion && selectedRegion !== 'all') {
+      kejadian = kejadian.filter(f => matchesRegion(f));
+    }
     if (selectedYear && selectedYear !== 'all') {
       kejadian = kejadian.filter((f) => {
         const tgl = f.properties.tanggal_kejadian;
@@ -297,6 +317,19 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
       kejadianFeatures: kejadian,
     };
   }, [geodata, selectedRegion, selectedYear]);
+
+  // Extract combined geodata for FitBounds calculation
+  const boundsGeodata = useMemo(() => {
+    return {
+      type: 'FeatureCollection',
+      features: [
+        ...(kerawananData ? kerawananData.features : []),
+        ...(terisolasiData ? terisolasiData.features : []),
+        ...(longsorData ? longsorData.features : []),
+        ...(kejadianFeatures || [])
+      ]
+    };
+  }, [kerawananData, terisolasiData, longsorData, kejadianFeatures]);
 
   // =====================================================================
   // POPUP GENERATORS
@@ -477,20 +510,12 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
       />
 
       {/* Auto-fit bounds based on filtered features */}
-      <FitBounds geodata={{
-        type: 'FeatureCollection',
-        features: [
-          ...(kerawananData ? kerawananData.features : []),
-          ...(terisolasiData ? terisolasiData.features : []),
-          ...(longsorData ? longsorData.features : []),
-          ...(kejadianFeatures || [])
-        ]
-      }} />
+      <FitBounds geodata={boundsGeodata} />
 
       {/* Layer 1: Kerawanan Longsor (Hazard) — Choropleth */}
       {kerawananData && (
         <GeoJSON
-          key={`kerawanan-${isSimulating ? 'sim' : 'normal'}`}
+          key={`kerawanan-${isSimulating ? 'sim' : 'normal'}-${selectedRegion}`}
           data={kerawananData}
           style={getKerawananStyle}
           onEachFeature={onEachKerawanan}
@@ -500,7 +525,7 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
       {/* Layer 2: Zona Terisolasi (Impact) — BlankSpot */}
       {terisolasiData && (
         <GeoJSON
-          key={`terisolasi-${isSimulating ? 'sim' : 'normal'}`}
+          key={`terisolasi-${isSimulating ? 'sim' : 'normal'}-${selectedRegion}`}
           data={terisolasiData}
           style={getTerisolasiStyle}
           onEachFeature={onEachTerisolasi}
@@ -510,7 +535,7 @@ function MapCanvasEnhanced({ geodata, isSimulating, isLoading, selectedRegion, s
       {/* Layer 3: Jalan Lintas (Access) */}
       {jalanData && (
         <GeoJSON
-          key={`jalan-${isSimulating ? 'sim' : 'normal'}`}
+          key={`jalan-${isSimulating ? 'sim' : 'normal'}-${selectedRegion}`}
           data={jalanData}
           style={getJalanStyle}
           onEachFeature={onEachJalan}

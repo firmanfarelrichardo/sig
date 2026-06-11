@@ -68,6 +68,13 @@ const FeatureSection = () => {
             </div>
           </div>
         </div>
+        
+        {/* Wave to Modul 2 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block" style={{ fill: '#ffffff' }}>
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z"></path>
+          </svg>
+        </div>
       </section>
 
       {/* ================= MODUL 2: RUTE EVAKUASI ================= */}
@@ -124,6 +131,13 @@ const FeatureSection = () => {
             
           </div>
         </div>
+        
+        {/* Wave to Modul 3 */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[40px] md:h-[60px] block" style={{ fill: '#fdfbf7' }}>
+            <path d="M985.66,92.83C906.67,72,823.78,31,741.52,14.58,659.26-1.84,573.46-.83,491.07,15.89,433.3,27.62,377.14,47,319.14,57.75,251.33,70.82,174.85,63.21,104.8,44.73V120H1200V14.58C1132.19,33.06,1055.71,74.35,985.66,92.83Z"></path>
+          </svg>
+        </div>
       </section>
 
       {/* ================= MODUL 3: INTEGRASI PEMANGKU KEPENTINGAN ================= */}
@@ -178,6 +192,13 @@ const FeatureSection = () => {
             </div>
             
           </div>
+        </div>
+        
+        {/* Abstract blocks at bottom */}
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
+          <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none" className="w-full h-[20px] md:h-[30px] block" style={{ fill: '#8b5a2b', opacity: 0.1 }}>
+            <polygon points="1200 120 1200 0 0 120 1200 120"></polygon>
+          </svg>
         </div>
       </section>
 

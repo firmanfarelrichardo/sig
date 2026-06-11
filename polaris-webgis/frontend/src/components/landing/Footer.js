@@ -7,7 +7,7 @@ const IconGlobeBrown = () => (
   </svg>
 );
 
-const Footer = ({ scrollToSection }) => {
+const Footer = ({ setCurrentPage }) => {
   return (
     <footer className="bg-slate-50 border-t border-slate-200 pt-16 pb-8">
       <div className="max-w-[1200px] mx-auto px-6 lg:px-12">
@@ -27,9 +27,10 @@ const Footer = ({ scrollToSection }) => {
           <div>
             <h4 className="text-slate-900 font-bold mb-4 uppercase text-sm tracking-wider">Tautan Pintas</h4>
             <ul className="space-y-3">
-              <li><button onClick={() => scrollToSection('beranda')} className="text-slate-600 hover:text-orange-500 text-sm transition-colors">Beranda Utama</button></li>
-              <li><button onClick={() => scrollToSection('fitur')} className="text-slate-600 hover:text-orange-500 text-sm transition-colors">Mekanisme Sistem</button></li>
-              <li><button onClick={() => scrollToSection('peta-kerawanan')} className="text-slate-600 hover:text-orange-500 text-sm transition-colors">Data Kerawanan</button></li>
+              <li><button onClick={() => setCurrentPage('beranda')} className="text-slate-600 hover:text-[#8b5a2b] text-sm transition-colors">Beranda Utama</button></li>
+              <li><button onClick={() => setCurrentPage('peta')} className="text-slate-600 hover:text-[#8b5a2b] text-sm transition-colors">Peta Bencana</button></li>
+              <li><button onClick={() => setCurrentPage('data')} className="text-slate-600 hover:text-[#8b5a2b] text-sm transition-colors">Data Historis</button></li>
+              <li><button onClick={() => setCurrentPage('tentang')} className="text-slate-600 hover:text-[#8b5a2b] text-sm transition-colors">Tentang Polaris</button></li>
             </ul>
           </div>
           
