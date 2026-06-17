@@ -1,0 +1,5 @@
+# Context — Dokumentasi Internal
+# File-file di folder ini TIDAK perlu di-push ke repository Git.
+# Berisi catatan deployment, prompt AI, dan panduan internal.
+*
+!.gitignore
